@@ -72,6 +72,9 @@ function! s:DiagnosticsVersion(file_path) abort
 endfunction
 
 function! lsc#diagnostics#setForFile(file_path, diagnostics) abort
+  echom "jkl Diagnostics setForFile ".a:file_path
+  echom "jkl Diagnostics count ".len(a:diagnostics)
+
   if exists('g:lsc_enable_diagnostics') && !g:lsc_enable_diagnostics
     return
   endif

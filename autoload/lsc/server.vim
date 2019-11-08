@@ -269,7 +269,7 @@ function! lsc#server#register(filetype, config) abort
     if self.status ==# 'starting'
         \ || !has_key(self.config, 'suppress_stderr')
         \ || !self.config.suppress_stderr
-      call lsc#message#error('StdErr from '.self.config.name.': '.a:message)
+      call lsc#message#error('(server)'.a:message)
     endif
   endfunction
   function! server.on_exit() abort

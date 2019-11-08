@@ -1,3 +1,25 @@
+" Signs
+call sign_define([
+\    { 'name': 'lscDiagnosticError',
+\        'text' : 'x ',
+\        'texthl' : 'SpellBad' },
+\    { 'name': 'lscDiagnosticWarning',
+\        'text' : '! ',
+\        'texthl' : 'WarningMsg' },
+\    { 'name': 'lscDiagnosticInfo',
+\        'text' : '? ',
+\        'texthl' : 'Normal' },
+\    { 'name': 'lscDiagnosticHint',
+\        'text' : '* ',
+\        'texthl' : 'SpellRare' }
+\])
+
+function! lsc#highlights#placeSigns() abort
+endfunction
+
+function! lsc#highlights#removeSigns() abort
+endfunction
+
 " Refresh highlight matches on all visible windows.
 function! lsc#highlights#updateDisplayed() abort
   if s:DeferForMode() | return | endif
@@ -14,7 +36,15 @@ function! lsc#highlights#update() abort
   if s:CurrentWindowIsFresh() | return | endif
   call lsc#highlights#clear()
   if &diff | return | endif
-  for l:highlight in lsc#diagnostics#forFile(lsc#file#fullPath()).Highlights()
+
+  let l:file_path = lsc#file#fullPath()
+  let l:file_highlights = lsc#diagnostics#forFile(l:file_path).Highlights()
+  echom "jkl Highlight file_path ".l:file_path
+  echom "jkl Highlight count ".len(l:file_highlights)
+
+  for l:highlight in l:file_highlights
+    echom "jkl group ".l:highlight.group
+
     if l:highlight.ranges[0][0] > line('$')
       " Diagnostic starts after end of file
       let l:match = matchadd(l:highlight.group, '\%'.line('$').'l$')
@@ -25,6 +55,7 @@ function! lsc#highlights#update() abort
           \ matchadd(l:highlight.group, '\%'.l:highlight.ranges[0][0].'l$')
     else
       let l:match = matchaddpos(l:highlight.group, l:highlight.ranges, -1)
+      call sign_place(l:match, 'lscSigns', l:highlight.group, '', {'lnum': l:highlight.ranges[0][0]})
     endif
     call add(w:lsc_diagnostic_matches, l:match)
   endfor
@@ -36,6 +67,7 @@ function! lsc#highlights#clear() abort
   if exists('w:lsc_diagnostic_matches')
     for current_match in w:lsc_diagnostic_matches
       silent! call matchdelete(current_match)
+      call sign_unplace('lscSigns', {'id': current_match})
     endfor
   endif
   let w:lsc_diagnostic_matches = []
