@@ -6,20 +6,20 @@ function! lsc#uri#documentUri(...) abort
   endif
 
   if has('win32')
-    let l:file_path = substitute(l:file_path, '\','/','g')
+    let l:file_path = s:fromWindowsPath(l:file_path)
   endif
 
   return s:filePrefix().s:EncodePath(l:file_path)
 endfunction
 
 function! lsc#uri#documentPath(uri) abort
-  let l:decoded = s:DecodePath(substitute(a:uri, '^'.s:filePrefix(), '', 'v'))
+  let l:decoded_path = s:DecodePath(substitute(a:uri, '^'.s:filePrefix(), '', 'v'))
 
   if has('win32')
-    let l:decoded = substitute(l:decoded, '/','\','g')
+    let l:decoded_path = s:toWindowsPath(l:decoded_path)
   endif
 
-  return l:decoded
+  return l:decoded_path
 endfunction
 
 function! s:EncodePath(value) abort
@@ -48,4 +48,12 @@ function! s:filePrefix(...) abort
   else
     return 'file://'
   endif
+endfunction
+
+function! s:fromWindowsPath(path)
+    return substitute(a:path, '\','/','g')
+endfunction
+
+function! s:toWindowsPath(path)
+    return substitute(a:path, '/','\','g')
 endfunction
