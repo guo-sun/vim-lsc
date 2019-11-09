@@ -184,6 +184,13 @@ function! s:handlePopup(params, id, result)
         return 1
     endif
 
+    if a:result == '3'
+        let l:lines = getbufline(winbufnr(a:id), 0, '$')
+        call popup_close(a:id)
+        call lsc#util#displayAsPreview(l:lines, function('lsc#util#noop'))
+        return 1
+    endif
+
     return 0
 endfunction
 
@@ -227,7 +234,7 @@ function! s:openHoverPopup(lines, params) abort
     let s:popup_id = popup_atcursor(a:lines, {
           \ 'padding': [0, 4, 1, 3],
           \ 'border': [1, 0, 0, 1],
-          \ 'title' : '1: TypeDef  2: Refs',
+          \ 'title' : '1: TypeDef  2: Refs  3: Preview',
           \ 'moved': 'any',
           \ 'highlight' : 'Normal',
           \ 'filter': function('<SID>handlePopup', [a:params]),
