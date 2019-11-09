@@ -39,8 +39,6 @@ function! lsc#highlights#update() abort
 
   let l:file_path = lsc#file#fullPath()
   let l:file_highlights = lsc#diagnostics#forFile(l:file_path).Highlights()
-  echom "jkl Highlight file_path ".l:file_path
-  echom "jkl Highlight count ".len(l:file_highlights)
 
   for l:highlight in l:file_highlights
     if l:highlight.ranges[0][0] > line('$')
