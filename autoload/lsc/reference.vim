@@ -36,7 +36,6 @@ function! s:GoToDefinition(mods, issplit, result) abort
     let location = a:result
   endif
   let file = lsc#uri#documentPath(location.uri)
-  echom "jkl go to file ".file
   let line = location.range.start.line + 1
   let character = location.range.start.character + 1
   let dotag = &tagstack && exists('*gettagstack') && exists('*settagstack')
@@ -173,9 +172,6 @@ endfunction
 
 " TODO filter passes along result to close callback
 function! s:handlePopup(params, id, result)
-    echom 'Popup result ' .. a:result
-    echom string(a:params)
-
     if a:result == '1'
         call popup_close(a:id)
         call s:goToTypeDefinition(a:params)
@@ -229,7 +225,7 @@ function! s:openHoverPopup(lines, params) abort
     " vint: +ProhibitAutocmdWithNoGroup
   else
     let s:popup_id = popup_atcursor(a:lines, {
-          \ 'padding': [1, 1, 1, 3],
+          \ 'padding': [0, 4, 1, 3],
           \ 'border': [1, 0, 0, 1],
           \ 'title' : '1: TypeDef  2: Refs',
           \ 'moved': 'any',
@@ -237,7 +233,6 @@ function! s:openHoverPopup(lines, params) abort
           \ 'filter': function('<SID>handlePopup', [a:params]),
           \ })
     
-    echom "Should be syntaxed ".s:popup_id
 	call win_execute(s:popup_id, 'set syntax='.&filetype)
   end
 endfunction

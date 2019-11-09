@@ -43,8 +43,6 @@ function! lsc#highlights#update() abort
   echom "jkl Highlight count ".len(l:file_highlights)
 
   for l:highlight in l:file_highlights
-    echom "jkl group ".l:highlight.group
-
     if l:highlight.ranges[0][0] > line('$')
       " Diagnostic starts after end of file
       let l:match = matchadd(l:highlight.group, '\%'.line('$').'l$')
