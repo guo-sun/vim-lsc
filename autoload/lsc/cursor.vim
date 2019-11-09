@@ -68,9 +68,13 @@ function! s:HighlightReferences(force_in_highlight) abort
   let l:params = lsc#params#documentPosition()
   " TODO handle multiple servers
   let l:server = lsc#server#forFileType(&filetype)[0]
+
+  let l:cancel_timer_id = timer_start(200, {-> execute("call lsc#cursor#clean()","")})
+  " if this call fails highlighting is broken until enter/exit insert
+  " Actual fix would be to have error continuation
   call l:server.request('textDocument/documentHighlight', l:params,
       \ funcref('<SID>HandleHighlights',
-      \ [s:highlights_request, getcurpos(), bufnr('%'), &filetype]))
+      \ [l:cancel_timer_id, s:highlights_request, getcurpos(), bufnr('%'), &filetype]))
 endfunction
 
 function! s:CanHighlightReferences() abort
@@ -82,8 +86,9 @@ function! s:CanHighlightReferences() abort
   return v:false
 endfunction
 
-function! s:HandleHighlights(request_number, old_pos, old_buf_nr,
+function! s:HandleHighlights(cancel_timer_id, request_number, old_pos, old_buf_nr,
     \ request_filetype, highlights) abort
+  call timer_stop(a:cancel_timer_id)
   if !has_key(s:pending, a:request_filetype) || !s:pending[a:request_filetype]
     return
   endif
