@@ -150,6 +150,9 @@ function! s:IfEnabled(function, ...) abort
 endfunction
 
 function! s:OnOpen() abort
+  " TODO guess the server doesn't exist yet, filetype autocmd may hit after
+  " buffnewfile
+  sleep 10m
   if !has_key(g:lsc_servers_by_filetype, &filetype) | return | endif
   call lsc#config#mapKeys()
   if !lsc#server#filetypeActive(&filetype) | return | endif
