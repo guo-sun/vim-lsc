@@ -1,5 +1,21 @@
 let s:popup_id = 0
 
+function! s:goToTypeDefinition(params) abort
+  call lsc#file#flushChanges()
+  call lsc#server#userCall('textDocument/typeDefinition',
+          \ a:params,
+          \ lsc#util#gateResult('GoToDefinition',
+              \   function('<SID>GoToDefinition', [':aboveleft', 1])))
+endfunction
+
+function! s:getReferences(params) abort
+  call lsc#file#flushChanges()
+  let l:params = a:params
+  let a:params.context = {'includeDeclaration': v:true}
+  call lsc#server#userCall('textDocument/references', a:params,
+      \ function('<SID>setQuickFixLocations', ['references']))
+endfunction
+
 function! lsc#reference#goToDefinition(mods, issplit) abort
   call lsc#file#flushChanges()
   call lsc#server#userCall('textDocument/definition',
@@ -20,6 +36,7 @@ function! s:GoToDefinition(mods, issplit, result) abort
     let location = a:result
   endif
   let file = lsc#uri#documentPath(location.uri)
+  echom "jkl go to file ".file
   let line = location.range.start.line + 1
   let character = location.range.start.character + 1
   let dotag = &tagstack && exists('*gettagstack') && exists('*settagstack')
@@ -125,10 +142,10 @@ function! lsc#reference#hover() abort
   call lsc#file#flushChanges()
   let params = lsc#params#documentPosition()
   call lsc#server#userCall('textDocument/hover', params,
-      \ function('<SID>showHover'))
+      \ function('<SID>showHover', [params]))
 endfunction
 
-function! s:showHover(result) abort
+function! s:showHover(params, result) abort
   if empty(a:result) || empty(a:result.contents)
     echom 'No hover information'
     return
@@ -148,13 +165,33 @@ function! s:showHover(result) abort
   if get(g:, 'lsc_hover_popup', v:true) 
         \ && (exists('*popup_atcursor') || exists('*nvim_open_win'))
     call s:closeHoverPopup()
-    call s:openHoverPopup(l:lines)
+    call s:openHoverPopup(l:lines, a:params)
   else
     call lsc#util#displayAsPreview(lines, function('lsc#util#noop'))
   endif
 endfunction
 
-function! s:openHoverPopup(lines) abort
+" TODO filter passes along result to close callback
+function! s:handlePopup(params, id, result)
+    echom 'Popup result ' .. a:result
+    echom string(a:params)
+
+    if a:result == '1'
+        call popup_close(a:id)
+        call s:goToTypeDefinition(a:params)
+        return 1
+    endif
+
+    if a:result == '2'
+        call popup_close(a:id)
+        call s:getReferences(a:params)
+        return 1
+    endif
+
+    return 0
+endfunction
+
+function! s:openHoverPopup(lines, params) abort
   " Sanity check, if there is no hover text then don't waste resources creating an
   " empty popup.
   if len(a:lines) == 0
@@ -192,10 +229,16 @@ function! s:openHoverPopup(lines) abort
     " vint: +ProhibitAutocmdWithNoGroup
   else
     let s:popup_id = popup_atcursor(a:lines, {
-          \ 'padding': [1, 1, 1, 1],
-          \ 'border': [0, 0, 0, 0],
+          \ 'padding': [1, 1, 1, 3],
+          \ 'border': [1, 0, 0, 1],
+          \ 'title' : '1: TypeDef  2: Refs',
           \ 'moved': 'any',
+          \ 'highlight' : 'Normal',
+          \ 'filter': function('<SID>handlePopup', [a:params]),
           \ })
+    
+    echom "Should be syntaxed ".s:popup_id
+	call win_execute(s:popup_id, 'set syntax='.&filetype)
   end
 endfunction
 
@@ -230,7 +273,6 @@ function! s:setQuickFixSymbols(results) abort
   call setqflist(a:results)
   copen
 endfunction
-
 
 " If the server supports `textDocument/documentHighlight` and they are enabled,
 " use the active highlights to move the cursor to the next or previous referene
