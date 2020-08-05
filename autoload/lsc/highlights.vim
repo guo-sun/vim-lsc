@@ -1,3 +1,19 @@
+" Signs
+call sign_define([
+\    { 'name': 'lscDiagnosticError',
+\        'text' : 'x ',
+\        'texthl' : 'SpellBad' },
+\    { 'name': 'lscDiagnosticWarning',
+\        'text' : '! ',
+\        'texthl' : 'WarningMsg' },
+\    { 'name': 'lscDiagnosticInfo',
+\        'text' : '? ',
+\        'texthl' : 'Normal' },
+\    { 'name': 'lscDiagnosticHint',
+\        'text' : '* ',
+\        'texthl' : 'SpellRare' }
+\])
+
 " Refresh highlight matches on all visible windows.
 function! lsc#highlights#updateDisplayed() abort
   if s:DeferForMode() | return | endif
@@ -25,6 +41,7 @@ function! lsc#highlights#update() abort
           \ matchadd(l:highlight.group, '\%'.l:highlight.ranges[0][0].'l$')
     else
       let l:match = matchaddpos(l:highlight.group, l:highlight.ranges, -1)
+      call sign_place(l:match, 'lscSigns', l:highlight.group, '', {'lnum': l:highlight.ranges[0][0]})
     endif
     call add(w:lsc_diagnostic_matches, l:match)
   endfor
@@ -36,6 +53,7 @@ function! lsc#highlights#clear() abort
   if exists('w:lsc_diagnostic_matches')
     for current_match in w:lsc_diagnostic_matches
       silent! call matchdelete(current_match)
+      call sign_unplace('lscSigns', {'id': current_match})
     endfor
   endif
   let w:lsc_diagnostic_matches = []
