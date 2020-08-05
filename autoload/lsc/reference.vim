@@ -177,6 +177,29 @@ function! s:showHover(force_preview, result) abort
   endif
 endfunction
 
+function! s:handlePopup(id, result)
+  if a:result == '1' "goto definition
+    call popup_close(a:id)
+    LSClientGoToDefinition
+    return 1
+  endif
+
+  if a:result == '2' " references
+    call popup_close(a:id)
+    LSClientFindReferences
+    return 1
+  endif
+
+  if a:result == '3' " move to preview
+    let l:lines = getbufline(winbufnr(a:id), 0, '$')
+    call popup_close(a:id)
+    call lsc#util#displayAsPreview(l:lines, function('lsc#util#noop'))
+    return 1
+  endif
+
+  return 0
+endfunction
+
 function! s:openHoverPopup(lines, filetype) abort
   " Sanity check, if there is no hover text then don't waste resources creating an
   " empty popup.
@@ -252,9 +275,12 @@ function! s:openHoverPopup(lines, filetype) abort
     call nvim_buf_set_keymap(buf, 'n', '<Esc>', ':close<CR>', {})
   else
     let s:popup_id = popup_atcursor(a:lines, {
-          \ 'padding': [1, 1, 1, 1],
-          \ 'border': [0, 0, 0, 0],
+          \ 'padding': [0, 4, 1, 3],
+          \ 'border': [1, 0, 0, 1],
+          \ 'title' : '1: TypeDef  2: Refs  3: Preview',
           \ 'moved': 'any',
+          \ 'highlight' : 'Normal',
+          \ 'filter': function('<SID>handlePopup'),
           \ })
     if g:lsc_enable_popup_syntax
       call setbufvar(winbufnr(s:popup_id), '&filetype', a:filetype)
