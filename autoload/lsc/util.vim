@@ -90,7 +90,7 @@ function! lsc#util#displayAsPreview(lines, filetype, function) abort
   setlocal noreadonly
   %d
   call setline(1, a:lines)
-  let &filetype = a:filetype
+  let &syntax = a:filetype
   call a:function()
   setlocal nomodifiable
   setlocal readonly

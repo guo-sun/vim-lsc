@@ -177,7 +177,7 @@ function! s:showHover(force_preview, result) abort
   endif
 endfunction
 
-function! s:handlePopup(id, result)
+function! s:handlePopup(filetype, id, result)
   if a:result == '1' "goto definition
     call popup_close(a:id)
     LSClientGoToDefinition
@@ -193,7 +193,7 @@ function! s:handlePopup(id, result)
   if a:result == '3' " move to preview
     let l:lines = getbufline(winbufnr(a:id), 0, '$')
     call popup_close(a:id)
-    call lsc#util#displayAsPreview(l:lines, function('lsc#util#noop'))
+    call lsc#util#displayAsPreview(l:lines, a:filetype, function('lsc#util#noop'))
     return 1
   endif
 
@@ -280,10 +280,10 @@ function! s:openHoverPopup(lines, filetype) abort
           \ 'title' : '1: TypeDef  2: Refs  3: Preview',
           \ 'moved': 'any',
           \ 'highlight' : 'Normal',
-          \ 'filter': function('<SID>handlePopup'),
+          \ 'filter': function('<SID>handlePopup', [a:filetype]),
           \ })
     if g:lsc_enable_popup_syntax
-      call setbufvar(winbufnr(s:popup_id), '&filetype', a:filetype)
+      call setbufvar(winbufnr(s:popup_id), '&syntax', a:filetype)
     endif
   end
 endfunction
