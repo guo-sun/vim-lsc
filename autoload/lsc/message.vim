@@ -25,11 +25,28 @@ function! lsc#message#error(message) abort
   call s:Echo('echom', a:message, 'Error')
 endfunction
 
+function! s:SetupMessageBuffer()
+    let g:lsc#message#buffer = bufadd('lscMessageBuffer')
+    call bufload(g:lsc#message#buffer)
+    call setbufvar(g:lsc#message#buffer, "&hidden", 1)
+endfunction
+
+call s:SetupMessageBuffer()
+
+function! s:AddBufferMessage(message)
+  call appendbufline(g:lsc#message#buffer, '$', a:message)
+endfunction
+
+function! lsc#message#showBuffer()
+    execute g:lsc#message#buffer."buffer"
+endfunction
+
 function! s:Echo(echo_cmd, message, level) abort
   let [level, hl_group] = s:Level(a:level)
   exec 'echohl '.hl_group
   exec a:echo_cmd.' "[lsc:'.level.'] ".a:message'
   echohl None
+  call s:AddBufferMessage(a:message)
 endfunction
 
 function! s:Level(level) abort
