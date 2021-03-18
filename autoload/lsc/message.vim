@@ -38,7 +38,7 @@ function! s:AddBufferMessage(message)
 endfunction
 
 function! lsc#message#showBuffer()
-    execute g:lsc#message#buffer."buffer"
+    execute 'tab sb '.g:lsc#message#buffer
 endfunction
 
 function! s:Echo(echo_cmd, message, level) abort
