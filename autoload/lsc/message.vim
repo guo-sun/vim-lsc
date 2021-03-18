@@ -29,6 +29,7 @@ function! s:SetupMessageBuffer()
     let g:lsc#message#buffer = bufadd('lscMessageBuffer')
     call bufload(g:lsc#message#buffer)
     call setbufvar(g:lsc#message#buffer, "&hidden", 1)
+    call setbufvar(g:lsc#message#buffer, "&buftype", "nofile")
 endfunction
 
 call s:SetupMessageBuffer()
